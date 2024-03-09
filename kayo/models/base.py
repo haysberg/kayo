@@ -5,7 +5,7 @@ from peewee import *
 global db
 
 # if os.getenv("DEPLOYED") == "PRODUCTION":
-db = SqliteDatabase("kayo2.db")
+db = SqliteDatabase("kayo.db")
 # else:
 #     db = SqliteDatabase(":memory:")
 

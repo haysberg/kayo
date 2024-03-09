@@ -1,9 +1,11 @@
 import os
 import json
+from re import M
 import requests
 
 from kayo import instance
 from dotenv import load_dotenv
+from kayo.models.alert import Alert, send_alerts
 from kayo.models.match import Match
 from kayo.models.base import db
 from kayo.models.team import Team
@@ -16,7 +18,8 @@ from kayo.models.team import get_team_names
 
 
 load_dotenv()
-db.create_tables([Match, Team])
+db.create_tables([Match, Team, Alert])
+
 
 @instance.bot.event
 async def on_ready():
@@ -32,7 +35,9 @@ async def check_matches():
     data = data.get('data').get('segments')
     instance.logger.info(data)
     for match in data:
-        osef = Match().insert(id=int(match['match_page'][1:7]), **match).on_conflict_replace().execute()
+        if match['time_until_match'] == "LIVE" and Match().get(Match.match_page == match['match_page']).time_until_match != "LIVE":
+            send_alerts(Match().get(Match.match_page == match['match_page']))
+        Match.insert(id=int(match['match_page'][1:7]), **match).on_conflict_replace().execute()
 
 @tasks.loop(seconds=3600)
 async def check_teams():
@@ -42,7 +47,7 @@ async def check_teams():
         data = json.loads(requests.get(f'https://vlrggapi-q5vt9jqyz-rehkloos.vercel.app/rankings/{region}').text)
         data = data.get('data')
         for team in data:
-            osef = Team().insert(name=team['team'], logo=team['logo'], earnings=int(team['earnings'].strip('$').replace(',', ''))).on_conflict_replace().execute()
+            Team.insert(name=team['team'], logo=team['logo'], earnings=int(team['earnings'].strip('$').replace(',', ''))).on_conflict_replace().execute()
 
 # BOT COMMANDS
 @instance.subscribe.command(name="team", description="Subscribe to team alerts")
@@ -56,8 +61,21 @@ async def subscribe_team(ctx: discord.ApplicationContext, team: discord.Option(s
         Defaults to discord.utils.basic_autocomplete(get_league_names)).
     """
     try:
+        team = Team.get(Team.name == team)
+        if isinstance(ctx.channel, discord.DMChannel):
+            alert = Alert().insert(team=team, user_id=ctx.user.id).execute()
+        else: 
+            alert = Alert().insert(team=team, channel_id=ctx.channel_id).execute()
         await ctx.respond(f"Successfully created an alert for {team} !")
-    except discord.ext.commands.errors.MissingPermissions:
-        await ctx.respond("You need to have the 'Manage Messages' permission to run this command in a server. Feel free to send me a DM !")
+    except commands.errors.MissingPermissions:
+        await ctx.respond("You need to have the 'Manage Messages' permission to run this command in a server. Feel free to send me a DM instead !")
 
+@instance.bot.command(name="testalerts", description="Debug command")
+@commands.has_permissions(manage_messages=True)
+async def testalerts(ctx: discord.ApplicationContext):
+    matches = Match.select().limit(10)
+    for match in matches:
+        await Alert.select().limit(1).first().send_alert(match)
+
+print(os.getenv("DISCORD_TOKEN"))
 instance.bot.run(os.getenv("DISCORD_TOKEN"))
