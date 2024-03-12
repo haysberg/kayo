@@ -18,7 +18,7 @@ RUN python3 -m venv $POETRY_VENV \
     && $POETRY_VENV/bin/pip install poetry
 
 # Create a new stage from the base python image
-FROM python-base as ziosting-ansible
+FROM python-base as kayo
 
 LABEL org.opencontainers.image.source=https://github.com/haysberg/kayo
 
