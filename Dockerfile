@@ -20,6 +20,8 @@ RUN python3 -m venv $POETRY_VENV \
 # Create a new stage from the base python image
 FROM python-base as ziosting-ansible
 
+LABEL org.opencontainers.image.source=https://github.com/haysberg/kayo
+
 WORKDIR /app
 
 # Copy Poetry to app image
