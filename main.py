@@ -1,7 +1,7 @@
 import os
 import json
-from re import M
 import requests
+import peewee
 
 from kayo import instance
 from dotenv import load_dotenv
@@ -35,8 +35,11 @@ async def check_matches():
     data = data.get('data').get('segments')
     instance.logger.info(data)
     for match in data:
-        if match['time_until_match'] == "LIVE" and Match().get(Match.match_page == match['match_page']).time_until_match != "LIVE":
-            send_alerts(Match().get(Match.match_page == match['match_page']))
+        try:
+            if match['time_until_match'] == "LIVE" and Match().get(Match.match_page == match['match_page']).time_until_match != "LIVE":
+                await send_alerts(Match().get(Match.match_page == match['match_page']))
+        except peewee.DoesNotExist :
+                await send_alerts(Match(id=int(match['match_page'][1:7]), **match))
         Match.insert(id=int(match['match_page'][1:7]), **match).on_conflict_replace().execute()
 
 @tasks.loop(seconds=3600)
