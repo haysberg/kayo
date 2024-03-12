@@ -37,7 +37,7 @@ COPY ./kayo ./kayo
 ENV SETUPTOOLS_USE_DISTUTILS=stdlib
 
 # Validate config && install dependencies
-RUN poetry check && poetry install --only main --no-interaction --no-cache
+RUN poetry check && poetry install --only main --no-interaction --no-cache && mkdir data
 ENV PYTHONUNBUFFERED=1
 
 CMD [ "poetry", "run", "python", "main.py" ]
