@@ -31,7 +31,7 @@ async def on_ready():
 async def check_matches():
     """Checks if there is new upcoming matches."""
     instance.logger.info("Checking for matches...")
-    data = json.loads(requests.get('https://vlrggapi-q5vt9jqyz-rehkloos.vercel.app/match/upcoming').text)
+    data = json.loads(requests.get(f'{instance.vlrapi}/match/upcoming').text)
     data = data.get('data').get('segments')
     instance.logger.info(data)
     for match in data:
@@ -47,7 +47,7 @@ async def check_teams():
     """Downloads teams to put them in the database. Useful for autocomplete."""
     instance.logger.info("Checking for teams to add to the db...")
     for region in ['na', 'eu', 'ap', 'la', 'la-s', 'la-n', 'oce', 'kr', 'mn', 'gc', 'br', 'cn']:
-        data = json.loads(requests.get(f'https://vlrggapi-q5vt9jqyz-rehkloos.vercel.app/rankings/{region}').text)
+        data = json.loads(requests.get(f'{instance.vlrapi}/rankings/{region}').text)
         data = data.get('data')
         for team in data:
             Team.insert(name=team['team'], logo=team['logo'], earnings=int(team['earnings'].strip('$').replace(',', ''))).on_conflict_replace().execute()
