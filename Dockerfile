@@ -1,13 +1,41 @@
-FROM python:slim
+FROM python:3.11-slim as python-base
+
+ENV POETRY_HOME=/opt/poetry
+ENV POETRY_VENV=/opt/poetry-venv
+ENV POETRY_CACHE_DIR=/app/venv
+
+# Create stage for Poetry installation
+FROM python-base as poetry-base
+
+# Administrative tasks
+RUN apt update -y && apt upgrade -y && apt autoremove -y && apt clean -y
+
+RUN pip install --upgrade pip
+
+# Creating a virtual environment just for poetry and install it with pip
+RUN python3 -m venv $POETRY_VENV \
+    && $POETRY_VENV/bin/pip install -U pip setuptools \
+    && $POETRY_VENV/bin/pip install poetry
+
+# Create a new stage from the base python image
+FROM python-base as ziosting-ansible
 
 WORKDIR /app
 
-ENV DEPLOYED=PRODUCTION
+# Copy Poetry to app image
+COPY --from=poetry-base ${POETRY_VENV} ${POETRY_VENV}
 
-ADD *.py requirements.txt referential.json /app/
+# Add Poetry to PATH
+ENV PATH="${PATH}:${POETRY_VENV}/bin"
 
-ADD /kayo/* /app/kayo/
+# Copy Application & dependencies
+COPY poetry.lock pyproject.toml referential.json README.md main.py ./
+COPY ./kayo ./kayo 
 
-RUN pip install -r /app/requirements.txt && mkdir /app/db
+ENV SETUPTOOLS_USE_DISTUTILS=stdlib
 
-CMD [ "python3", "main.py" ]
+# Validate config && install dependencies
+RUN poetry check && poetry install --only main --no-interaction --no-cache
+ENV PYTHONUNBUFFERED=1
+
+CMD [ "poetry", "run", "python", "main.py" ]
