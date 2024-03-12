@@ -11,9 +11,9 @@ If you want to invite KAY/O on your server, use [this link](https://discord.com/
 
 ## Roadmap
 
-- [ ] Adding a dynamic `/help`command
+- [ ] Adding a dynamic `/help` command
 - [ ] Responding to alerts with match results (marked as spoiler)
-- [ ] Subscribing to leagues (for example, following VCT EMEA)
+- [ ] Subscribing to leagues (*e.g* following VCT EMEA)
 - [ ] A very simple website to explain what the bot does
 - [ ] Filling up the `referential.json`file with more links to watch matches
 
