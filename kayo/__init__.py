@@ -41,6 +41,8 @@ class BotContext:
         
         self.subscribe = self.bot.create_group("subscribe", "Subscribes you to teams")
 
+        self.unsubscribe = self.bot.create_group("unsubscribe", "Unsubscribes you to teams")
+
         self.vlrapi = os.environ.get('VLR_GG_API')
 
 

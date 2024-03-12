@@ -3,6 +3,8 @@ import json
 import requests
 import peewee
 
+from peewee import DoesNotExist
+
 from kayo import instance
 from dotenv import load_dotenv
 from kayo.models.alert import Alert, send_alerts
@@ -73,12 +75,57 @@ async def subscribe_team(ctx: discord.ApplicationContext, team: discord.Option(s
     except commands.errors.MissingPermissions:
         await ctx.respond("You need to have the 'Manage Messages' permission to run this command in a server. Feel free to send me a DM instead !")
 
-@instance.bot.command(name="testalerts", description="Debug command")
+@instance.unsubscribe.command(name="team", description="Unsubscribe to team alerts")
 @commands.has_permissions(manage_messages=True)
-async def testalerts(ctx: discord.ApplicationContext):
-    matches = Match.select().limit(10)
-    for match in matches:
-        await Alert.select().limit(1).first().send_alert(match)
+async def unsubscribe_team(ctx: discord.ApplicationContext, team: discord.Option(str, "team", autocomplete=discord.utils.basic_autocomplete(get_team_names))): # type: ignore
+    try:
+        target_team = Team.get(Team.name == team)
+        if isinstance(ctx.channel, discord.DMChannel):
+            alert = Alert.select().where(
+                (Alert.user_id == ctx.user.id) & (Alert.team == target_team)
+            ).get().delete_instance()
+        else: 
+            alert = Alert.select().where(
+                (Alert.channel_id == ctx.channel_id) & (Alert.team == target_team)
+            ).get().delete_instance()
+        await ctx.respond(f"Successfully deleted your alert for {team}.")
+    except commands.errors.MissingPermissions:
+        await ctx.respond("You need to have the 'Manage Messages' permission to run this command in a server. Feel free to send me a DM instead !")
+    except DoesNotExist:
+        await ctx.respond("Looks like you don't have an alert for that team.")
 
-print(os.getenv("DISCORD_TOKEN"))
+@instance.bot.command(name="list", description="Lists alerts in this channel")
+@commands.has_permissions(manage_messages=True)
+async def list_alerts(ctx: discord.ApplicationContext):
+    try:
+        alerts = {}
+        if isinstance(ctx.channel, discord.DMChannel):
+            alerts = Alert.select().where(
+                (Alert.user_id == ctx.user.id)
+            )
+        else: 
+            alerts = Alert.select().where(
+                (Alert.channel_id == ctx.channel_id)
+            )
+        if alerts is not {}:
+            answer = "List of team alerts : "
+            for alert in alerts:
+                if len(f"{answer}\r- {alert.team.name}") > 1500:
+                    await ctx.respond(answer)
+                    answer = ""
+                answer = f"{answer}\r- {alert.team.name}"
+        await ctx.respond(answer)
+    except commands.errors.MissingPermissions:
+        await ctx.respond("You need to have the 'Manage Messages' permission to run this command in a server. Feel free to send me a DM instead !")
+    except DoesNotExist:
+        await ctx.respond("Looks like you don't have any alerts in that channel.")
+
+if os.environ.get('DEPLOYED', 'DEBUG').upper() != "PRODUCTION":
+    @instance.bot.command(name="testalerts", description="Debug command")
+    @commands.has_permissions(manage_messages=True)
+    async def testalerts(ctx: discord.ApplicationContext):
+        matches = Match.select().limit(10)
+        for match in matches:
+            await Alert.select().limit(1).first().send_alert(match)
+
 instance.bot.run(os.getenv("DISCORD_TOKEN"))
