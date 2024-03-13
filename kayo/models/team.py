@@ -8,5 +8,9 @@ class Team(BaseModel):
     logo = CharField()
     earnings = IntegerField()
 
+
 def get_team_names(ctx: discord.AutocompleteContext = None):
-    return [team['name'] for team in Team.select(Team.name).order_by(Team.earnings.desc()).dicts()]
+    return [
+        team["name"]
+        for team in Team.select(Team.name).order_by(Team.earnings.desc()).dicts()
+    ]
