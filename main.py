@@ -169,11 +169,14 @@ async def list_alerts(ctx: discord.ApplicationContext):
 )
 async def help(ctx: discord.ApplicationContext):
     await ctx.respond(
-        """Here is the list of commands you can use :
-                      - /subscribe [team] to receive alerts on a team
-                      - /unsubscribe [team] to stop receiving alerts
-                      - /list to list the alerts configured in the current channel
-                      """
+        """
+Here is the list of commands you can use :
+```
+- /subscribe [team] to receive alerts on a team
+- /unsubscribe [team] to stop receiving alerts
+- /list to list the alerts configured in the current channel
+```
+        """
     )
 
 
