@@ -12,6 +12,10 @@ If you want to invite KAY/O on your server, use [this link](https://discord.com/
 ## Roadmap
 
 - [ ] Adding a dynamic `/help` command
+- [ ] Create a *real* pipeline with tests and tools such as Black
+- [ ] Add bulk upserts / threads for match updates for better performance
+- [ ] Update vlrggapi with better tools and contribute back to the project
+  - [ ] Deploy our own copy of it locally to make the hosted bot faster
 - [ ] Responding to alerts with match results (marked as spoiler)
 - [ ] Subscribing to leagues (*e.g* following VCT EMEA)
 - [ ] A very simple website to explain what the bot does
