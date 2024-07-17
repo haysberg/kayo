@@ -13,7 +13,6 @@ from kayo.models.base import db
 from kayo.models.team import Team
 from discord.ext import tasks
 
-from kayo import instance
 import discord
 from discord.ext import commands
 from kayo.models.team import get_team_names
@@ -34,7 +33,7 @@ async def on_ready():
 async def check_matches():
     """Checks if there is new upcoming matches."""
     instance.logger.info("Checking for matches...")
-    data = json.loads(requests.get(f"{instance.vlrapi}/match/upcoming").text)
+    data = json.loads(requests.get(f"{instance.vlrapi}/match?q=upcoming").text)
     instance.logger.info(data)
     for match in data.get("data").get("segments"):
         try:
@@ -97,9 +96,9 @@ async def subscribe_team(ctx: discord.ApplicationContext, team: discord.Option(s
     try:
         team = Team.get(Team.name == team)
         if isinstance(ctx.channel, discord.DMChannel):
-            alert = Alert().insert(team=team, user_id=ctx.user.id).execute()
+            Alert().insert(team=team, user_id=ctx.user.id).execute()
         else:
-            alert = Alert().insert(team=team, channel_id=ctx.channel_id).execute()
+            Alert().insert(team=team, channel_id=ctx.channel_id).execute()
         await ctx.respond(f"Successfully created an alert for {team} !")
     except commands.errors.MissingPermissions:
         await ctx.respond(
@@ -113,21 +112,9 @@ async def unsubscribe_team(ctx: discord.ApplicationContext, team: discord.Option
     try:
         target_team = Team.get(Team.name == team)
         if isinstance(ctx.channel, discord.DMChannel):
-            alert = (
-                Alert.select()
-                .where((Alert.user_id == ctx.user.id) & (Alert.team == target_team))
-                .get()
-                .delete_instance()
-            )
+                Alert.select().where((Alert.user_id == ctx.user.id) & (Alert.team == target_team)).get().delete_instance()
         else:
-            alert = (
-                Alert.select()
-                .where(
-                    (Alert.channel_id == ctx.channel_id) & (Alert.team == target_team)
-                )
-                .get()
-                .delete_instance()
-            )
+            Alert.select().where((Alert.channel_id == ctx.channel_id) & (Alert.team == target_team)).get().delete_instance()
         await ctx.respond(f"Successfully deleted your alert for {team}.")
     except commands.errors.MissingPermissions:
         await ctx.respond(

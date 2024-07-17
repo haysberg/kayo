@@ -1,4 +1,3 @@
-from typing import Any
 from peewee import IntegerField, ForeignKeyField
 from kayo.models.base import BaseModel
 from kayo.models.team import Team

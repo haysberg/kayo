@@ -1,4 +1,3 @@
-from typing import Any
 from peewee import IntegerField, CharField
 from kayo.models.base import BaseModel
 

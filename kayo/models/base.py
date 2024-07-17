@@ -1,6 +1,5 @@
-import os
 
-from peewee import *
+from peewee import SqliteDatabase, Model
 
 global db
 
