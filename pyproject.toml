@@ -6,7 +6,7 @@ authors = ["haysberg"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.11"
+python = "^3.12"
 py-cord = { version = "2.5.0" }
 python-dotenv = "^1.0.0"
 peewee = "^3.17.0"
