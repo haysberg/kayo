@@ -15,7 +15,16 @@ requests = "^2.31.0"
 [tool.poetry.group.dev.dependencies]
 black = "^24.2.0"
 pre-commit = "^3.6.2"
+ruff = "^0.5.2"
 
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.format]
+quote-style = "single"
+indent-style = "space"
+docstring-code-format = true
